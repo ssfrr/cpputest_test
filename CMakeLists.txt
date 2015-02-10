@@ -30,8 +30,7 @@ if(CPPUTEST_LIB)
         ${CPPUTEST_LIB})
     set_target_properties(RunTests
         PROPERTIES
-        COMPILE_FLAGS -fprofile-arcs
-        COMPILE_FLAGS -ftest-coverage
+        COMPILE_FLAGS "-fprofile-arcs -ftest-coverage -g -O0"
         # warning - this flag needs to be -lgcov instead of --coverage for gcc
         LINK_FLAGS --coverage)
 else(CPPUTEST_LIB)
