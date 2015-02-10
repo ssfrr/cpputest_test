@@ -22,6 +22,7 @@ find_library(CPPUTEST_LIB
 add_executable(Run
     src/Main.c
     src/Adder.c)
+
 if(CPPUTEST_LIB)
     add_executable(RunTests
         src/Adder.c
@@ -30,9 +31,17 @@ if(CPPUTEST_LIB)
         ${CPPUTEST_LIB})
     set_target_properties(RunTests
         PROPERTIES
-        COMPILE_FLAGS "-fprofile-arcs -ftest-coverage -g -O0"
-        # warning - this flag needs to be -lgcov instead of --coverage for gcc
+        COMPILE_FLAGS "--coverage -g -O0"
         LINK_FLAGS --coverage)
+    add_custom_target(coverage
+        DEPENDS RunTests
+        COMMAND lcov --quiet --directory . --zerocounters # delete any existing .gcda files
+        COMMAND lcov --quiet --directory . --base-directory . --capture -i -o cov_init.info # generate initial data before the run
+        COMMAND ./RunTests # run the tests
+        COMMAND lcov --quiet --directory . --base-directory . --capture -o cov_run.info # collect the coverage data
+        COMMAND lcov --quiet --add-tracefile cov_init.info --add-tracefile cov_run.info -o cov_total.info # combine the coverate data
+        COMMAND lcov --list cov_total.info
+        VERBATIM)
 else(CPPUTEST_LIB)
     message(WARNING "${Yellow}CppUTest library not found. Not building tests${ColorReset}")
 endif(CPPUTEST_LIB)
