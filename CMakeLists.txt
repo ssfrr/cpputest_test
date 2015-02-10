@@ -16,6 +16,8 @@ find_library(CPPUTEST_LIB
     CppUTest
     "${CPPUTEST_BASEDIR}/cpputest_build/src/CppUTest")
 
+find_program(LCOV_EXE lcov)
+
 # Listing all the source files individually has the benefit that adding a
 # sourcefile updates CMakeLists.txt (this file) and so the next time we run
 # "make" it will re-run cmake automatically to do all it's internal bookkeeping
@@ -33,15 +35,19 @@ if(CPPUTEST_LIB)
         PROPERTIES
         COMPILE_FLAGS "--coverage -g -O0"
         LINK_FLAGS --coverage)
-    add_custom_target(coverage
-        DEPENDS RunTests
-        COMMAND lcov --quiet --directory . --zerocounters # delete any existing .gcda files
-        COMMAND lcov --quiet --directory . --base-directory . --capture -i -o cov_init.info # generate initial data before the run
-        COMMAND ./RunTests # run the tests
-        COMMAND lcov --quiet --directory . --base-directory . --capture -o cov_run.info # collect the coverage data
-        COMMAND lcov --quiet --add-tracefile cov_init.info --add-tracefile cov_run.info -o cov_total.info # combine the coverate data
-        COMMAND lcov --list cov_total.info
-        VERBATIM)
+    if(LCOV_EXE)
+        add_custom_target(coverage
+            DEPENDS RunTests
+            COMMAND ${LCOV_EXE} --quiet --directory . --zerocounters # delete any existing .gcda files
+            COMMAND ${LCOV_EXE} --quiet --directory . --base-directory . --capture -i -o cov_init.info # generate initial data before the run
+            COMMAND ./RunTests # run the tests
+            COMMAND ${LCOV_EXE} --quiet --directory . --base-directory . --capture -o cov_run.info # collect the coverage data
+            COMMAND ${LCOV_EXE} --quiet --add-tracefile cov_init.info --add-tracefile cov_run.info -o cov_total.info # combine the coverate data
+            COMMAND ${LCOV_EXE} --list cov_total.info
+            VERBATIM)
+    else(LCOV_EXE)
+        message(WARNING "${Yellow}lcov not found. Coverage stats not available${ColorReset}")
+    endif(LCOV_EXE)
 else(CPPUTEST_LIB)
     message(WARNING "${Yellow}CppUTest library not found. Not building tests${ColorReset}")
 endif(CPPUTEST_LIB)
