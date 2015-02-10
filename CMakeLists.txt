@@ -14,7 +14,6 @@ set(ColorReset "${Esc}[m")
 # CppUTest
 find_library(CPPUTEST_LIB
     CppUTest)
-
 find_path(CPPUTEST_INC
     CppUTest/CommandLineTestRunner.h)
 
@@ -41,9 +40,12 @@ if(CPPUTEST_LIB AND CPPUTEST_INC)
     if(LCOV_EXE)
         add_custom_target(coverage
             DEPENDS RunTests
+            COMMAND echo "Initializing coverage data files..."
             COMMAND ${LCOV_EXE} --quiet --directory . --zerocounters # delete any existing .gcda files
-            COMMAND ${LCOV_EXE} --quiet --directory . --base-directory . --capture -i -o cov_init.info # generate initial data before the run
-            COMMAND ./RunTests # run the tests
+            COMMAND ${LCOV_EXE} --quiet --directory . --base-directory . --capture --initial -o cov_init.info # generate initial data before the run
+            COMMAND echo "Running the tests..."
+            COMMAND ${CMAKE_CTEST_COMMAND} # run the tests
+            COMMAND echo "Generating coverage data..."
             COMMAND ${LCOV_EXE} --quiet --directory . --base-directory . --capture -o cov_run.info # collect the coverage data
             COMMAND ${LCOV_EXE} --quiet --add-tracefile cov_init.info --add-tracefile cov_run.info -o cov_total.info # combine the coverate data
             COMMAND ${LCOV_EXE} --list cov_total.info
@@ -55,4 +57,4 @@ else(CPPUTEST_LIB AND CPPUTEST_INC)
     message(WARNING "${Yellow}CppUTest library not found. Not building tests${ColorReset}")
 endif(CPPUTEST_LIB AND CPPUTEST_INC)
 
-add_test(MAIN_TEST RunTests)
+add_test(Main RunTests)
