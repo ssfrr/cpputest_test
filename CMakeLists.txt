@@ -9,12 +9,14 @@ set(Green      "${Esc}[32m")
 set(Yellow     "${Esc}[33m")
 set(ColorReset "${Esc}[m")
 
-set(CPPUTEST_BASEDIR "/Users/srussell/local/src/cpputest")
-include_directories("${CPPUTEST_BASEDIR}/include")
 
+# these can be set via ccmake or the CMake GUI to use a custom path for
+# CppUTest
 find_library(CPPUTEST_LIB
-    CppUTest
-    "${CPPUTEST_BASEDIR}/cpputest_build/src/CppUTest")
+    CppUTest)
+
+find_path(CPPUTEST_INC
+    CppUTest/CommandLineTestRunner.h)
 
 find_program(LCOV_EXE lcov)
 
@@ -25,7 +27,8 @@ add_executable(Run
     src/Main.c
     src/Adder.c)
 
-if(CPPUTEST_LIB)
+if(CPPUTEST_LIB AND CPPUTEST_INC)
+    include_directories(${CPPUTEST_INC})
     add_executable(RunTests
         src/Adder.c
         test/TestRunner.cpp)
@@ -48,8 +51,8 @@ if(CPPUTEST_LIB)
     else(LCOV_EXE)
         message(WARNING "${Yellow}lcov not found. Coverage stats not available${ColorReset}")
     endif(LCOV_EXE)
-else(CPPUTEST_LIB)
+else(CPPUTEST_LIB AND CPPUTEST_INC)
     message(WARNING "${Yellow}CppUTest library not found. Not building tests${ColorReset}")
-endif(CPPUTEST_LIB)
+endif(CPPUTEST_LIB AND CPPUTEST_INC)
 
-#add_test(RunTests)
+add_test(MAIN_TEST RunTests)
